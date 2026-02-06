@@ -1,0 +1,66 @@
+{
+  "kind": "collectionType",
+  "collectionName": "videos",
+  "info": {
+    "singularName": "video",
+    "pluralName": "videos",
+    "displayName": "Video",
+    "description": "Video content"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "title",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "videoUrl": {
+      "type": "string",
+      "required": true
+    },
+    "videoFile": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["videos"]
+    },
+    "thumbnail": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "duration": {
+      "type": "string"
+    },
+    "category": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::category.category"
+    },
+    "section": {
+      "type": "enumeration",
+      "enum": [
+        "news",
+        "sport",
+        "business",
+        "entertainment",
+        "lifestyle"
+      ]
+    },
+    "publishedDate": {
+      "type": "datetime"
+    },
+    "viewCount": {
+      "type": "integer",
+      "default": 0
+    }
+  }
+}
