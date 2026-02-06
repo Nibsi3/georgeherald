@@ -12,8 +12,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "workspaces": [
-    "frontend",
-    "backend"
+    "frontend"
   ],
   "keywords": [],
   "author": "",
@@ -26,6 +25,8 @@
     "next": "16.1.6",
     "node-fetch": "^2.7.0",
     "p-limit": "^7.3.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
     "xml2js": "^0.6.2"
   }
 }
