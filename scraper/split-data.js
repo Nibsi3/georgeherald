@@ -37,21 +37,38 @@ async function main() {
     };
   });
 
-  // Save lightweight listings
-  const listingsJson = JSON.stringify(listings);
-  console.log(`Listings JSON size: ${(listingsJson.length / 1024 / 1024).toFixed(2)} MB`);
-  await fs.writeJson(path.join(FRONTEND_DATA, "articles.json"), listings, { spaces: 0 });
+  // (listings saved after merge below)
 
   // Create individual article detail files in articles/ directory
   const articlesDir = path.join(FRONTEND_DATA, "articles");
   await fs.ensureDir(articlesDir);
-  
-  // Clean existing files
-  const existing = await fs.readdir(articlesDir);
-  for (const f of existing) {
-    await fs.remove(path.join(articlesDir, f));
-  }
 
+  // ── MERGE: load existing listings, merge by slug (prefer newest) ──
+  const listingsPath = path.join(FRONTEND_DATA, "articles.json");
+  let existingListings = [];
+  try {
+    existingListings = await fs.readJson(listingsPath);
+    console.log(`Existing listings: ${existingListings.length}`);
+  } catch { /* first run, no existing data */ }
+
+  const mergedMap = new Map();
+  for (const item of existingListings) {
+    if (item.slug) mergedMap.set(item.slug, item);
+  }
+  let newCount = 0;
+  for (const item of listings) {
+    if (!mergedMap.has(item.slug)) newCount++;
+    mergedMap.set(item.slug, item); // overwrite with latest scrape
+  }
+  const mergedListings = Array.from(mergedMap.values());
+  console.log(`Merged listings: ${mergedListings.length} (${newCount} new)`);
+
+  // Save merged listings
+  const mergedJson = JSON.stringify(mergedListings);
+  console.log(`Merged JSON size: ${(mergedJson.length / 1024 / 1024).toFixed(2)} MB`);
+  await fs.writeJson(listingsPath, mergedListings, { spaces: 0 });
+
+  // Write individual article files (add/overwrite, don't delete existing)
   let saved = 0;
   for (const a of articles) {
     const url = a.link || a.guid || "";
