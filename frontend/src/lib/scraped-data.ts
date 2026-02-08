@@ -385,11 +385,23 @@ export function getArticleDetail(slug: string): Article | undefined {
     const filePath = path.join(process.cwd(), "src", "data", "articles", `${fullSlug}.json`);
     const raw = JSON.parse(fs.readFileSync(filePath, "utf-8"));
 
-    const bodyText = cleanBodyText(raw.bodyText || "");
-    const bodyBlocks =
-      Array.isArray(raw.bodyBlocks) && raw.bodyBlocks.length > 0
-        ? (raw.bodyBlocks as ContentBlock[])
-        : parseBodyBlocks(raw.bodyHtml);
+    // bodyText may contain JSON blocks (new format) or plain text (old format)
+    let bodyBlocks: ContentBlock[] = [];
+    let bodyText = "";
+    if (Array.isArray(raw.bodyBlocks) && raw.bodyBlocks.length > 0) {
+      bodyBlocks = raw.bodyBlocks as ContentBlock[];
+      bodyText = bodyBlocks.filter((b: ContentBlock) => b.type === "paragraph").map((b: ContentBlock) => b.text).join("\n\n");
+    } else {
+      // Try parsing bodyText or bodyHtml as JSON blocks
+      const jsonSource = raw.bodyHtml || raw.bodyText || "";
+      const parsed = parseBodyBlocks(jsonSource);
+      if (parsed.length > 0) {
+        bodyBlocks = parsed;
+        bodyText = parsed.filter((b: ContentBlock) => b.type === "paragraph").map((b: ContentBlock) => b.text).join("\n\n");
+      } else {
+        bodyText = cleanBodyText(raw.bodyText || "");
+      }
+    }
     const articleImages = filterContentImages(raw.images || [], article.title);
 
     const authorNameRaw = raw.author || article.author?.name || "George Herald";

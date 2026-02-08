@@ -39,12 +39,16 @@ export interface Tag {
 }
 
 export interface ContentBlock {
-  type: "paragraph" | "heading" | "blockquote" | "list";
+  type: "paragraph" | "heading" | "blockquote" | "list" | "image_with_caption" | "intro_bold" | "contributor";
   text: string;
   html?: string;
   level?: string;
   items?: string[];
   ordered?: boolean;
+  imageUrl?: string;
+  caption?: string;
+  contributorName?: string;
+  contributorDate?: string;
 }
 
 export interface Article {

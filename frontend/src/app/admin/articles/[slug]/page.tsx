@@ -595,7 +595,10 @@ export default function ArticleEditorPage() {
                 <div className="w-px h-4 bg-gray-200 mx-1" />
                 <button onClick={() => execFormat("insertUnorderedList")} className="p-1.5 rounded hover:bg-gray-100 text-gray-500" title="Bullet List"><List className="h-3.5 w-3.5" /></button>
                 <button onClick={() => execFormat("insertOrderedList")} className="p-1.5 rounded hover:bg-gray-100 text-gray-500" title="Numbered List"><ListOrdered className="h-3.5 w-3.5" /></button>
-                <button onClick={() => insertBlock("blockquote")} className="p-1.5 rounded hover:bg-gray-100 text-gray-500" title="Quote"><Quote className="h-3.5 w-3.5" /></button>
+                <button onClick={() => insertBlock("blockquote")} className="p-1.5 rounded hover:bg-gray-100 text-gray-500" title="Pull Quote"><Quote className="h-3.5 w-3.5" /></button>
+                <button onClick={() => { document.execCommand("formatBlock", false, "blockquote"); document.execCommand("bold"); bodyRef.current?.focus(); handleBodyInput(); }} className="p-1.5 rounded hover:bg-gray-100 text-gray-500 flex items-center gap-0.5" title="Bold Intro Text">
+                  <Sparkles className="h-3.5 w-3.5" />
+                </button>
                 <div className="w-px h-4 bg-gray-200 mx-1" />
                 <button onClick={() => { const url = prompt("Enter link URL:"); if (url) execFormat("createLink", url); }} className="p-1.5 rounded hover:bg-gray-100 text-gray-500" title="Link"><Link2 className="h-3.5 w-3.5" /></button>
                 <button onClick={() => execFormat("insertHorizontalRule")} className="p-1.5 rounded hover:bg-gray-100 text-gray-500" title="Divider"><Minus className="h-3.5 w-3.5" /></button>

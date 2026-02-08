@@ -61,12 +61,55 @@ function renderBlock(block: ContentBlock, index: number) {
       return (
         <blockquote
           key={index}
-          className="relative my-6 pl-5 pr-4 py-4 border-l-4 border-primary bg-red-50/50 rounded-r-lg"
+          className="relative my-8 pl-6 pr-5 py-5 border-l-4 border-primary bg-red-50/50 rounded-r-lg"
         >
-          <p className="text-base leading-relaxed italic text-foreground/80">
+          <p className="text-lg font-semibold leading-relaxed text-foreground/90">
             {block.text}
           </p>
         </blockquote>
+      );
+
+    case "intro_bold":
+      return (
+        <p
+          key={index}
+          className="text-xl font-bold leading-snug text-foreground mb-6 mt-2"
+        >
+          {block.text}
+        </p>
+      );
+
+    case "contributor":
+      return (
+        <div key={index} className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground mb-6 pb-4 border-b border-border">
+          {block.contributorName && (
+            <span className="font-semibold text-foreground">{block.contributorName}</span>
+          )}
+          {block.contributorDate && (
+            <span>{block.contributorDate}</span>
+          )}
+        </div>
+      );
+
+    case "image_with_caption":
+      return (
+        <figure key={index} className="my-8">
+          <div className="relative aspect-video rounded-xl overflow-hidden bg-muted">
+            <Image
+              src={block.imageUrl || ""}
+              alt={block.caption || block.text || "Article image"}
+              fill
+              className="object-cover"
+              quality={90}
+              sizes="(max-width: 768px) 100vw, 66vw"
+            />
+          </div>
+          {block.caption && (
+            <figcaption className="mt-2 text-sm text-muted-foreground italic text-center">
+              {block.caption}
+            </figcaption>
+          )}
+        </figure>
       );
 
     case "list":
@@ -284,13 +327,15 @@ export default async function ArticlePage({ params }: PageProps) {
           </div>
 
           {/* ── EMBEDDED VIDEOS ── */}
-          {article.videoUrls && article.videoUrls.length > 0 && (
+          {article.videoUrls && article.videoUrls.filter(u => u.includes("/embed/") || u.includes("player.vimeo")).length > 0 && (
             <div className="mt-8 space-y-4">
               <h3 className="text-lg font-bold flex items-center gap-2">
                 <Play className="h-5 w-5 text-primary" />
                 Video
               </h3>
-              {article.videoUrls.map((url, i) => (
+              {article.videoUrls
+                .filter(u => u.includes("/embed/") || u.includes("player.vimeo"))
+                .map((url, i) => (
                 <div key={i} className="relative aspect-video rounded-xl overflow-hidden bg-black">
                   <iframe
                     src={url}
