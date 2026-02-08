@@ -211,7 +211,7 @@ export default async function ArticlePage({ params }: PageProps) {
           </>
         )}
         <span>/</span>
-        <span className="text-foreground font-medium truncate max-w-[300px]">{article.title}</span>
+        <span className="text-foreground font-medium truncate max-w-[150px] sm:max-w-[300px]">{article.title}</span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -228,7 +228,7 @@ export default async function ArticlePage({ params }: PageProps) {
           </div>
 
           {/* Title */}
-          <h1 className="text-3xl lg:text-4xl font-black leading-tight mb-4">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black leading-tight mb-4">
             {article.title}
           </h1>
 
@@ -267,7 +267,7 @@ export default async function ArticlePage({ params }: PageProps) {
           )}
 
           {/* Excerpt as lead paragraph */}
-          <div className="text-lg font-medium text-foreground/80 leading-relaxed mb-6 border-l-4 border-primary pl-4">
+          <div className="text-base sm:text-lg font-medium text-foreground/80 leading-relaxed mb-6 border-l-4 border-primary pl-4">
             {article.excerpt}
           </div>
 

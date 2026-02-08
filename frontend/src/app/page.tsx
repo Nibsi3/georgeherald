@@ -1,5 +1,4 @@
 import { Separator } from "@/components/ui/separator";
-import ArticleCardHero from "@/components/cards/ArticleCardHero";
 import ArticleCard from "@/components/cards/ArticleCard";
 import VideoCard from "@/components/cards/VideoCard";
 import GalleryCard from "@/components/cards/GalleryCard";
@@ -7,6 +6,7 @@ import SectionHeader from "@/components/sections/SectionHeader";
 import MostReadAdRotator from "@/components/sections/MostReadAdRotator";
 import BreakingNewsBanner from "@/components/sections/BreakingNewsBanner";
 import NewsTicker from "@/components/sections/NewsTicker";
+import TopStoriesRotator from "@/components/sections/TopStoriesRotator";
 import { FileText, Calendar, Camera, Mountain, TrendingUp, Clock, Award } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -24,8 +24,6 @@ export default function Home() {
   const ws = PARENT_WORKSPACE;
   const topStories = getTopStoriesForWorkspace(ws);
   const breakingArticles = topStories.filter((a) => a.isBreaking);
-  const heroArticle = topStories[0];
-  const sideArticles = topStories.slice(1, 4);
   const sportArticles = getArticlesBySectionForWorkspace(ws, "sport", 6);
   const businessArticles = getArticlesBySectionForWorkspace(ws, "business", 4);
   const lifestyleArticles = getArticlesBySectionForWorkspace(ws, "lifestyle", 4);
@@ -47,13 +45,7 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
           {/* Main content */}
           <div className="lg:col-span-8">
-            {heroArticle && <ArticleCardHero article={heroArticle} />}
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mt-6">
-              {sideArticles.map((article) => (
-                <ArticleCard key={article.id} article={article} />
-              ))}
-            </div>
+            <TopStoriesRotator topStories={topStories} />
           </div>
 
           {/* Sidebar */}
@@ -153,11 +145,12 @@ export default function Home() {
           >
             <div className="relative aspect-[16/10] rounded-xl overflow-hidden">
               <Image
-                src="https://cms.groupeditors.com/img/3c63f67c-14ca-4ee9-9f25-4d991056a6db.jpg?w=800&scale=both&quality=100"
+                src="https://cms.groupeditors.com/img/3c63f67c-14ca-4ee9-9f25-4d991056a6db.jpg?w=1200&scale=both&quality=100"
                 alt="George Herald AVBOB FCJ Excellence Awards - Team photo"
                 fill
                 className="object-cover group-hover:scale-105 transition-transform duration-500"
                 sizes="(max-width: 768px) 100vw, 50vw"
+                quality={90}
               />
               <div className="absolute top-4 left-4">
                 <div className="inline-flex items-center gap-2 rounded-full bg-amber-500 text-white px-4 py-1.5 text-xs font-black uppercase tracking-wider shadow-md">

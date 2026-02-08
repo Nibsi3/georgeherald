@@ -36,6 +36,20 @@ function writeArticleDetail(slug: string, data: Record<string, unknown>) {
   fs.writeFileSync(file, JSON.stringify(data, null, 2), "utf-8");
 }
 
+function normalizeFeaturedImageUrl(url: unknown, width: number): unknown {
+  if (!url || typeof url !== "string") return url;
+  if (!url.includes("cms.groupeditors.com")) return url;
+  try {
+    const u = new URL(url);
+    u.searchParams.set("w", String(width));
+    if (!u.searchParams.has("quality")) u.searchParams.set("quality", "100");
+    if (!u.searchParams.has("scale")) u.searchParams.set("scale", "both");
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
 // Workspace content distribution:
 // - George Herald (parent) articles are visible in ALL workspaces
 // - Other workspace articles are ONLY visible in their own workspace
@@ -72,7 +86,9 @@ export async function GET(req: NextRequest) {
     const detail = readArticleDetail(slug);
     const listing = readArticles().find((a) => a.slug === slug);
     if (!listing) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    return NextResponse.json({ article: { ...listing, ...(detail || {}) } });
+    const article = { ...listing, ...(detail || {}) } as Record<string, unknown>;
+    article.featuredImage = normalizeFeaturedImageUrl(article.featuredImage, 1200);
+    return NextResponse.json({ article });
   }
 
   let articles = readArticles();
@@ -117,6 +133,7 @@ export async function GET(req: NextRequest) {
   const withViews = paginated.map((a) => ({
     ...a,
     viewCount: views[(a.slug as string)] || (a.viewCount as number) || 0,
+    featuredImage: normalizeFeaturedImageUrl(a.featuredImage, 1200),
   }));
 
   return NextResponse.json({

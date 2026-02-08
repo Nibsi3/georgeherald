@@ -115,11 +115,25 @@ function filterContentImages(images: any[], title: string) {
     }));
 }
 
+function normalizeFeaturedImageUrl(url: string, width: number): string {
+  try {
+    if (!url) return url;
+    if (!url.includes("cms.groupeditors.com")) return url;
+    const u = new URL(url);
+    u.searchParams.set("w", String(width));
+    if (!u.searchParams.has("quality")) u.searchParams.set("quality", "100");
+    if (!u.searchParams.has("scale")) u.searchParams.set("scale", "both");
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function transformArticle(raw: any, index: number): Article {
   const slug = raw.slug || extractSlug(raw.link || "");
   const featuredImage = raw.featuredImage
-    ? { url: raw.featuredImage, alternativeText: raw.title }
+    ? { url: normalizeFeaturedImageUrl(raw.featuredImage, 1200), alternativeText: raw.title }
     : undefined;
 
   const authorName =

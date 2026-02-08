@@ -26,5 +26,37 @@
     ],
     "activeWorkspace": "knysna-plett-herald",
     "createdAt": "2026-02-08T05:39:17.350Z"
+  },
+  {
+    "id": "user-1770557552041",
+    "email": "servaas@groupeditors.co.za",
+    "password": "!Georgeherald123",
+    "name": "Servaas De Kock ",
+    "role": "super_admin",
+    "workspaces": [
+      "george-herald",
+      "graaff-reinet-advertiser",
+      "knysna-plett-herald",
+      "mossel-bay-advertiser",
+      "oudtshoorn-courant"
+    ],
+    "activeWorkspace": "george-herald",
+    "createdAt": "2026-02-08T13:32:32.041Z"
+  },
+  {
+    "id": "user-1770557633684",
+    "email": "janieng@groupeditors.co.za",
+    "password": "!Georgeherald123",
+    "name": "Janien Gericke",
+    "role": "super_admin",
+    "workspaces": [
+      "george-herald",
+      "knysna-plett-herald",
+      "graaff-reinet-advertiser",
+      "mossel-bay-advertiser",
+      "oudtshoorn-courant"
+    ],
+    "activeWorkspace": "george-herald",
+    "createdAt": "2026-02-08T13:33:53.684Z"
   }
 ]

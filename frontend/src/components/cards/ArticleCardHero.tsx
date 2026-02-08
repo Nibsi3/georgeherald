@@ -30,7 +30,7 @@ export default function ArticleCardHero({ article }: ArticleCardHeroProps) {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
-        <div className="absolute bottom-0 left-0 right-0 p-6 lg:p-8">
+        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 lg:p-8">
           <div className="flex items-center gap-2 mb-3">
             {article.isBreaking && (
               <Badge className="bg-primary text-white border-none animate-pulse text-xs font-bold">
@@ -42,11 +42,11 @@ export default function ArticleCardHero({ article }: ArticleCardHeroProps) {
             </Badge>
           </div>
 
-          <h2 className="text-2xl lg:text-4xl font-black text-white leading-tight mb-3 group-hover:text-primary transition-colors">
+          <h2 className="text-xl sm:text-2xl lg:text-4xl font-black text-white leading-tight mb-2 sm:mb-3 group-hover:text-primary transition-colors">
             {article.title}
           </h2>
 
-          <p className="text-white/80 text-sm lg:text-base line-clamp-2 mb-4 max-w-2xl">
+          <p className="text-white/80 text-xs sm:text-sm lg:text-base line-clamp-2 mb-3 sm:mb-4 max-w-2xl hidden sm:block">
             {article.excerpt}
           </p>
 

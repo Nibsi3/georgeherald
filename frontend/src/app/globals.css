@@ -91,11 +91,21 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+  }
   body {
     @apply bg-background text-foreground;
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply tracking-tight;
+  }
+  img, video, iframe {
+    max-width: 100%;
+    height: auto;
   }
 }
 
@@ -123,10 +133,20 @@
   animation: marquee 30s linear infinite;
 }
 
+.prose-george {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
 .prose-george p {
   margin-bottom: 1rem;
   line-height: 1.75;
   color: oklch(0.35 0 0);
+  font-size: clamp(0.9375rem, 0.875rem + 0.25vw, 1.0625rem);
+}
+.prose-george img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
 }
 .prose-george blockquote {
   border-left: 4px solid oklch(0.577 0.245 27.325 / 0.3);

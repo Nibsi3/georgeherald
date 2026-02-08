@@ -76,7 +76,7 @@ export default function ImageCarousel({
                   fill
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, 66vw"
-                  quality={85}
+                  quality={90}
                   priority={i === 0}
                 />
               </div>

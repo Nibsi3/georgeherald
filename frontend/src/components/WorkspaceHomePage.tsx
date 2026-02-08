@@ -1,5 +1,4 @@
 import { Separator } from "@/components/ui/separator";
-import ArticleCardHero from "@/components/cards/ArticleCardHero";
 import ArticleCard from "@/components/cards/ArticleCard";
 import VideoCard from "@/components/cards/VideoCard";
 import GalleryCard from "@/components/cards/GalleryCard";
@@ -7,6 +6,7 @@ import SectionHeader from "@/components/sections/SectionHeader";
 import MostReadAdRotator from "@/components/sections/MostReadAdRotator";
 import BreakingNewsBanner from "@/components/sections/BreakingNewsBanner";
 import NewsTicker from "@/components/sections/NewsTicker";
+import TopStoriesRotator from "@/components/sections/TopStoriesRotator";
 import { FileText, Calendar, Camera, Mountain, TrendingUp, Clock } from "lucide-react";
 import Link from "next/link";
 import {
@@ -30,8 +30,6 @@ export default function WorkspaceHomePage({ workspaceId }: WorkspaceHomePageProp
 
   const topStories = getTopStoriesForWorkspace(workspaceId);
   const breakingArticles = topStories.filter((a) => a.isBreaking);
-  const heroArticle = topStories[0];
-  const sideArticles = topStories.slice(1, 4);
   const sportArticles = getArticlesBySectionForWorkspace(workspaceId, "sport", 6);
   const businessArticles = getArticlesBySectionForWorkspace(workspaceId, "business", 4);
   const lifestyleArticles = getArticlesBySectionForWorkspace(workspaceId, "lifestyle", 4);
@@ -53,13 +51,7 @@ export default function WorkspaceHomePage({ workspaceId }: WorkspaceHomePageProp
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
           {/* Main content */}
           <div className="lg:col-span-8">
-            {heroArticle && <ArticleCardHero article={heroArticle} />}
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mt-6">
-              {sideArticles.map((article) => (
-                <ArticleCard key={article.id} article={article} />
-              ))}
-            </div>
+            <TopStoriesRotator topStories={topStories} />
           </div>
 
           {/* Sidebar */}

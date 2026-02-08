@@ -277,6 +277,13 @@ export default function AdminShell({ session, children }: AdminShellProps) {
             <span className="text-sm font-semibold text-gray-700">{currentWs.name}</span>
           </div>
           <div className="flex-1" />
+          <button
+            onClick={handleLogout}
+            className="hidden sm:flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-red-600 transition-colors"
+          >
+            <LogOut className="h-4 w-4" />
+            Logout
+          </button>
           <span className="text-xs text-gray-400 hidden sm:block">
             {new Date().toLocaleDateString("en-ZA", {
               weekday: "long",
