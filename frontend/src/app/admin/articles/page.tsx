@@ -21,6 +21,10 @@ import {
   CheckCircle2,
   Upload,
   Eye,
+  Video,
+  Camera,
+  ChevronDown,
+  FileText,
 } from "lucide-react";
 
 interface ArticleListing {
@@ -90,6 +94,7 @@ export default function AdminArticlesPage() {
   const [categoryModal, setCategoryModal] = useState<{ slug: string; current: string } | null>(null);
   const [toastMsg, setToastMsg] = useState("");
   const [activeWs, setActiveWs] = useState(PARENT_WORKSPACE);
+  const [newMenuOpen, setNewMenuOpen] = useState(false);
 
   useEffect(() => {
     setActiveWs(getWorkspaceId());
@@ -125,16 +130,19 @@ export default function AdminArticlesPage() {
     }
   }, [searchParams]);
 
-  // Close menu on outside click
+  // Close menus on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (openMenu && !(e.target as HTMLElement).closest("[data-action-menu]")) {
         setOpenMenu(null);
       }
+      if (newMenuOpen && !(e.target as HTMLElement).closest("[data-new-menu]")) {
+        setNewMenuOpen(false);
+      }
     }
     document.addEventListener("click", handleClick);
     return () => document.removeEventListener("click", handleClick);
-  }, [openMenu]);
+  }, [openMenu, newMenuOpen]);
 
   // Toast auto-dismiss
   useEffect(() => {
@@ -247,13 +255,32 @@ export default function AdminArticlesPage() {
           <p className="text-sm text-gray-500 mt-0.5">{pagination.total.toLocaleString()} total articles</p>
         </div>
         <div className="flex items-center gap-2">
-          <Link
-            href="/admin/articles/new"
-            className="inline-flex items-center gap-2 bg-[#DC2626] text-white font-semibold text-sm px-4 py-2.5 rounded-lg hover:bg-[#B91C1C] transition-colors shrink-0"
-          >
-            <Plus className="h-4 w-4" />
-            New Article
-          </Link>
+          <div className="relative" data-new-menu>
+            <button
+              onClick={() => setNewMenuOpen(!newMenuOpen)}
+              className="inline-flex items-center gap-2 bg-[#DC2626] text-white font-semibold text-sm px-4 py-2.5 rounded-lg hover:bg-[#B91C1C] transition-colors shrink-0"
+            >
+              <Plus className="h-4 w-4" />
+              New
+              <ChevronDown className={`h-3.5 w-3.5 transition-transform ${newMenuOpen ? "rotate-180" : ""}`} />
+            </button>
+            {newMenuOpen && (
+              <div className="absolute right-0 top-full mt-1.5 bg-white border border-gray-200 rounded-xl shadow-xl z-30 w-56 overflow-hidden">
+                <Link href="/admin/articles/new" onClick={() => setNewMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors">
+                  <span className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center"><FileText className="h-4 w-4 text-[#DC2626]" /></span>
+                  <div><p className="text-sm font-semibold text-gray-800">Article</p><p className="text-[11px] text-gray-400">Write a news article</p></div>
+                </Link>
+                <Link href="/admin/videos/new" onClick={() => setNewMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-t border-gray-100">
+                  <span className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center"><Video className="h-4 w-4 text-purple-600" /></span>
+                  <div><p className="text-sm font-semibold text-gray-800">Video</p><p className="text-[11px] text-gray-400">Upload or embed a video</p></div>
+                </Link>
+                <Link href="/admin/galleries/new" onClick={() => setNewMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-t border-gray-100">
+                  <span className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center"><Camera className="h-4 w-4 text-blue-600" /></span>
+                  <div><p className="text-sm font-semibold text-gray-800">Gallery</p><p className="text-[11px] text-gray-400">Create a photo gallery</p></div>
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

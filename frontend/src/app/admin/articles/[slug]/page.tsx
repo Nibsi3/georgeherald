@@ -114,6 +114,7 @@ export default function ArticleEditorPage() {
   const heroInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const inlineImageRef = useRef<HTMLInputElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
 
   const [article, setArticle] = useState<ArticleData>(EMPTY_ARTICLE);
@@ -127,6 +128,21 @@ export default function ArticleEditorPage() {
   const [topTags, setTopTags] = useState<string[]>([]);
   const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
   const [galleryViewIdx, setGalleryViewIdx] = useState(0);
+  const [blockInsertOpen, setBlockInsertOpen] = useState(false);
+  const [currentUserName, setCurrentUserName] = useState("");
+
+  // Fetch current user to auto-populate author
+  useEffect(() => {
+    fetch("/api/admin/auth").then((r) => r.json()).then((data) => {
+      if (data.user?.name) {
+        setCurrentUserName(data.user.name);
+        // Auto-populate author for new articles
+        if (isNew) {
+          setArticle((prev) => prev.author ? prev : { ...prev, author: data.user.name });
+        }
+      }
+    }).catch(() => {});
+  }, [isNew]);
 
   useEffect(() => {
     if (!isNew) {
@@ -376,6 +392,72 @@ export default function ArticleEditorPage() {
     handleBodyInput();
   }
 
+  function insertExcerptBlock() {
+    if (!bodyRef.current) return;
+    bodyRef.current.focus();
+    const html = `<blockquote style="border-left:4px solid #DC2626;background:#fef2f2;padding:12px 16px;border-radius:0 8px 8px 0;margin:16px 0;"><strong>Write your brief excerpt or summary here...</strong></blockquote><p><br></p>`;
+    document.execCommand("insertHTML", false, html);
+    handleBodyInput();
+    setBlockInsertOpen(false);
+  }
+
+  async function handleInlineImageUpload(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    for (const file of Array.from(files)) {
+      const result = await uploadFile(file, "articles/images");
+      if (result) {
+        bodyRef.current?.focus();
+        const caption = prompt("Image caption (optional):") || "";
+        const html = `<figure style="margin:24px 0;text-align:center;"><img src="${result.url}" alt="${caption}" style="max-width:100%;border-radius:12px;" />${caption ? `<figcaption style="margin-top:8px;font-size:14px;color:#6b7280;font-style:italic;">${caption}</figcaption>` : ""}</figure><p><br></p>`;
+        document.execCommand("insertHTML", false, html);
+        handleBodyInput();
+        toast(`Image added to article`);
+      }
+    }
+    setUploading(false);
+    setBlockInsertOpen(false);
+  }
+
+  function insertInlineVideo() {
+    const url = prompt("Paste YouTube video URL (e.g. https://www.youtube.com/watch?v=...):");
+    if (!url) return;
+    let embedUrl = url.trim();
+    // Convert watch URL to embed URL
+    const watchMatch = embedUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+    if (watchMatch) {
+      embedUrl = `https://www.youtube.com/embed/${watchMatch[1]}`;
+    }
+    if (!embedUrl.includes("/embed/") && !embedUrl.includes("player.vimeo")) {
+      toast("Please use a valid YouTube or Vimeo URL");
+      return;
+    }
+    bodyRef.current?.focus();
+    const html = `<div style="position:relative;padding-bottom:56.25%;height:0;margin:24px 0;border-radius:12px;overflow:hidden;"><iframe src="${embedUrl}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allowfullscreen></iframe></div><p><br></p>`;
+    document.execCommand("insertHTML", false, html);
+    handleBodyInput();
+    setBlockInsertOpen(false);
+  }
+
+  function insertDividerBlock() {
+    bodyRef.current?.focus();
+    document.execCommand("insertHTML", false, `<hr style="margin:24px 0;border-color:#e5e7eb;"><p><br></p>`);
+    handleBodyInput();
+    setBlockInsertOpen(false);
+  }
+
+  // Close block insert menu on outside click
+  useEffect(() => {
+    if (!blockInsertOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (!(e.target as HTMLElement).closest("[data-block-insert]")) {
+        setBlockInsertOpen(false);
+      }
+    }
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
+  }, [blockInsertOpen]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -398,6 +480,7 @@ export default function ArticleEditorPage() {
       <input ref={heroInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleHeroUpload(e.target.files)} />
       <input ref={galleryInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleGalleryUpload(e.target.files)} />
       <input ref={videoInputRef} type="file" accept="video/*" multiple className="hidden" onChange={(e) => handleVideoUpload(e.target.files)} />
+      <input ref={inlineImageRef} type="file" accept="image/*" className="hidden" onChange={(e) => { handleInlineImageUpload(e.target.files); e.target.value = ""; }} />
 
       {/* Top action bar */}
       <div className="flex items-center gap-3 pb-4">
@@ -629,6 +712,41 @@ export default function ArticleEditorPage() {
                 empty:before:content-['Start_writing_your_article_here...'] empty:before:text-gray-400 empty:before:italic"
               data-placeholder="Start writing your article here..."
             />
+
+            {/* ── Inline Content Block Inserter ── */}
+            <div className="relative mt-4 mb-6" data-block-insert>
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-gray-200" />
+                <button
+                  onClick={() => setBlockInsertOpen(!blockInsertOpen)}
+                  className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${blockInsertOpen ? "border-[#DC2626] bg-[#DC2626] text-white rotate-45" : "border-gray-300 text-gray-400 hover:border-[#DC2626] hover:text-[#DC2626]"}`}
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+                <div className="flex-1 h-px bg-gray-200" />
+              </div>
+              {blockInsertOpen && (
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-30 w-64 overflow-hidden">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-4 pt-3 pb-1">Insert Content Block</p>
+                  <button onClick={insertExcerptBlock} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-left transition-colors">
+                    <span className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center"><Quote className="h-4 w-4 text-[#DC2626]" /></span>
+                    <div><p className="text-sm font-semibold text-gray-800">Excerpt / Summary</p><p className="text-[11px] text-gray-400">Bold highlighted text block</p></div>
+                  </button>
+                  <button onClick={() => inlineImageRef.current?.click()} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-left transition-colors">
+                    <span className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center"><ImageIcon className="h-4 w-4 text-blue-600" /></span>
+                    <div><p className="text-sm font-semibold text-gray-800">Image</p><p className="text-[11px] text-gray-400">Upload photo with caption</p></div>
+                  </button>
+                  <button onClick={insertInlineVideo} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-left transition-colors">
+                    <span className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center"><Video className="h-4 w-4 text-purple-600" /></span>
+                    <div><p className="text-sm font-semibold text-gray-800">Video</p><p className="text-[11px] text-gray-400">Embed YouTube or Vimeo</p></div>
+                  </button>
+                  <button onClick={insertDividerBlock} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-left transition-colors border-t border-gray-100">
+                    <span className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center"><Minus className="h-4 w-4 text-gray-500" /></span>
+                    <div><p className="text-sm font-semibold text-gray-800">Divider</p><p className="text-[11px] text-gray-400">Horizontal separator line</p></div>
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* Videos */}
             {article.videoUrls.length > 0 && (
