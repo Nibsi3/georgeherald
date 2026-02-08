@@ -144,6 +144,7 @@ export default async function VideoSlugPage({ params }: PageProps) {
               fill
               className="object-cover"
               priority
+              quality={90}
               sizes="(max-width: 768px) 100vw, 80vw"
             />
             <div className="absolute inset-0 flex items-center justify-center bg-black/30">

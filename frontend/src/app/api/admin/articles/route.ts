@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { getSession } from "@/lib/admin-auth";
+import {
+  saveArticlesIndexToR2,
+  saveArticleDetailToR2,
+  deleteArticleDetailFromR2,
+} from "@/lib/r2-articles";
 
 const DATA_DIR = path.join(process.cwd(), "src", "data");
 const ARTICLES_FILE = path.join(DATA_DIR, "articles.json");
@@ -193,7 +198,11 @@ export async function PUT(req: NextRequest) {
       }
     }
     writeArticleDetail(slug, detail);
+    saveArticleDetailToR2(slug, detail).catch(console.error);
   }
+
+  // Persist listing index to R2
+  saveArticlesIndexToR2(articles).catch(console.error);
 
   return NextResponse.json({ article: articles[idx] });
 }
@@ -265,6 +274,10 @@ export async function POST(req: NextRequest) {
   };
   writeArticleDetail(slug, detail);
 
+  // Persist to Cloudflare R2 for durable storage
+  saveArticlesIndexToR2(articles).catch(console.error);
+  saveArticleDetailToR2(slug, detail).catch(console.error);
+
   return NextResponse.json({ article: newListing }, { status: 201 });
 }
 
@@ -300,6 +313,10 @@ export async function DELETE(req: NextRequest) {
   // Delete detail file
   const detailFile = path.join(ARTICLES_DIR, `${slug}.json`);
   if (fs.existsSync(detailFile)) fs.unlinkSync(detailFile);
+
+  // Remove from R2 as well
+  saveArticlesIndexToR2(filtered).catch(console.error);
+  deleteArticleDetailFromR2(slug).catch(console.error);
 
   return NextResponse.json({ ok: true });
 }

@@ -1,77 +1,49 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import type { Article } from "@/lib/types";
 import ArticleCardHero from "@/components/cards/ArticleCardHero";
-import Link from "next/link";
-import Image from "next/image";
-
-function SmallTopStoryCard({ article }: { article: Article }) {
-  return (
-    <Link
-      href={`/news/${article.slug}`}
-      className="group flex items-center gap-2.5 p-2 rounded-xl border border-border bg-white hover:border-primary/30 hover:shadow-sm transition-all"
-    >
-      <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0">
-        {article.featuredImage ? (
-          <Image
-            src={article.featuredImage.url}
-            alt={article.title}
-            fill
-            className="object-cover"
-            quality={90}
-            sizes="48px"
-          />
-        ) : null}
-      </div>
-      <div className="min-w-0">
-        <p className="text-[12px] font-bold leading-snug line-clamp-2 group-hover:text-primary transition-colors">
-          {article.title}
-        </p>
-      </div>
-    </Link>
-  );
-}
+import ArticleCard from "@/components/cards/ArticleCard";
 
 export default function TopStoriesRotator({ topStories }: { topStories: Article[] }) {
   const stories = useMemo(() => topStories.slice(0, 6), [topStories]);
-  const [heroIndex, setHeroIndex] = useState(0);
-  const [crossfadeTo, setCrossfadeTo] = useState<number | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const goNext = useCallback(() => {
+    setActiveIndex((prev) => (prev + 1) % stories.length);
+  }, [stories.length]);
 
   useEffect(() => {
     if (stories.length <= 1) return;
-    const id = window.setInterval(() => {
-      const next = (heroIndex + 1) % stories.length;
-      setCrossfadeTo(next);
-      window.setTimeout(() => {
-        setHeroIndex(next);
-        setCrossfadeTo(null);
-      }, 350);
-    }, 10000);
+    const id = window.setInterval(goNext, 10000);
     return () => window.clearInterval(id);
-  }, [stories.length, heroIndex]);
-
-  const heroArticle = stories[heroIndex];
-  const nextHeroArticle = crossfadeTo !== null ? stories[crossfadeTo] : null;
+  }, [stories.length, goNext]);
 
   return (
-    <>
+    <div className="flex flex-col flex-1">
+      {/* Hero — all cards rendered, only active one visible via opacity */}
       <div className="relative">
-        <div className={`transition-opacity duration-350 ${crossfadeTo !== null ? "opacity-0" : "opacity-100"}`}>
-          {heroArticle && <ArticleCardHero article={heroArticle} />}
-        </div>
-        {nextHeroArticle && (
-          <div className="absolute inset-0 transition-opacity duration-350 opacity-100">
-            <ArticleCardHero article={nextHeroArticle} />
+        {stories.map((article, i) => (
+          <div
+            key={article.id}
+            className={`transition-opacity duration-700 ease-in-out ${
+              i === activeIndex ? "opacity-100 relative z-10" : "opacity-0 absolute inset-0 z-0"
+            }`}
+            aria-hidden={i !== activeIndex}
+          >
+            <ArticleCardHero article={article} />
           </div>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 mt-4">
-        {stories.map((article) => (
-          <SmallTopStoryCard key={article.id} article={article} />
         ))}
       </div>
-    </>
+
+      {/* 6 sub-story cards — flex-1 stretches to align with sidebar bottom */}
+      <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-0 mt-4 bg-white rounded-xl border border-border p-5 content-start">
+        {stories.map((article, i) => (
+          <div key={article.id} className={i < stories.length - 2 ? "border-b border-border/40 pb-3 mb-3 sm:pb-3 sm:mb-3" : i < stories.length - 1 ? "border-b border-border/40 pb-3 mb-3 sm:border-b-0 sm:pb-0 sm:mb-0" : ""}>
+            <ArticleCard article={article} variant="horizontal" />
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

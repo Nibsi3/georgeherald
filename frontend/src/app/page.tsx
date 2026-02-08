@@ -44,7 +44,7 @@ export default function Home() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
           {/* Main content */}
-          <div className="lg:col-span-8">
+          <div className="lg:col-span-8 flex flex-col">
             <TopStoriesRotator topStories={topStories} />
           </div>
 

@@ -122,7 +122,7 @@ export default async function GallerySlugPage({ params }: PageProps) {
             fill
             className="object-cover"
             priority
-            quality={85}
+            quality={90}
             sizes="(max-width: 768px) 100vw, 80vw"
           />
         </div>
