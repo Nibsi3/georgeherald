@@ -28,6 +28,7 @@ export default function AdminHeroPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [workspace, setWorkspace] = useState<WorkspaceConfig | null>(null);
+  const [latestArticles, setLatestArticles] = useState<ArticleListing[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Get current workspace from cookie
@@ -56,6 +57,10 @@ export default function AdminHeroPage() {
           }
           setHeroArticles(articles);
         }
+        // Load latest 6 articles for this workspace
+        const latestRes = await fetch(`/api/admin/articles?workspace=${encodeURIComponent(wsId)}&limit=6&sort=latest`);
+        const latestData = await latestRes.json();
+        if (latestData.articles) setLatestArticles(latestData.articles);
       }
       setLoading(false);
     }
@@ -215,6 +220,44 @@ export default function AdminHeroPage() {
           </div>
         )}
       </div>
+
+      {/* Latest articles quick-add */}
+      {latestArticles.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+            <Star className="h-4 w-4 text-blue-500" />
+            <h2 className="font-bold text-gray-900">Latest Articles — Quick Add</h2>
+            <span className="text-xs text-gray-400 ml-auto">Click to add as top story</span>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {latestArticles
+              .filter((a) => !heroSlugs.includes(a.slug))
+              .map((article) => (
+                <button
+                  key={article.slug}
+                  onClick={() => addHero(article)}
+                  className="w-full flex items-center gap-3 px-5 py-3 hover:bg-blue-50 transition-colors text-left"
+                >
+                  {article.featuredImage ? (
+                    <img src={article.featuredImage} alt="" className="w-14 h-10 object-cover rounded-md shrink-0 bg-gray-100" />
+                  ) : (
+                    <div className="w-14 h-10 bg-gray-100 rounded-md shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 truncate">{article.title}</p>
+                    <p className="text-[10px] text-gray-400">{article.section} · {article.category?.replace(/-/g, " ")} · {new Date(article.updated).toLocaleDateString("en-ZA")}</p>
+                  </div>
+                  <Plus className="h-4 w-4 text-blue-600 shrink-0" />
+                </button>
+              ))}
+            {latestArticles.filter((a) => !heroSlugs.includes(a.slug)).length === 0 && (
+              <div className="px-5 py-4 text-center text-gray-400 text-sm">
+                All latest articles are already in top stories.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Search to add articles */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
