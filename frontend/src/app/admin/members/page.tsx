@@ -87,12 +87,31 @@ export default function AdminMembersPage() {
 
   function toast(msg: string) { setToastMsg(msg); }
 
+  async function readJsonSafe(res: Response): Promise<any> {
+    const text = await res.text();
+    if (!text) return null;
+    try {
+      return JSON.parse(text);
+    } catch {
+      return { error: text };
+    }
+  }
+
   async function fetchUsers() {
     setLoading(true);
-    const res = await fetch("/api/admin/users");
-    const data = await res.json();
-    setAllUsers(data.users || []);
-    setLoading(false);
+    try {
+      const res = await fetch("/api/admin/users");
+      const data = await readJsonSafe(res);
+      if (!res.ok) {
+        setError(data?.error || "Failed to load members");
+        setAllUsers([]);
+      } else {
+        setError("");
+        setAllUsers(data?.users || []);
+      }
+    } finally {
+      setLoading(false);
+    }
   }
 
   function openNewForm() {
@@ -158,8 +177,8 @@ export default function AdminMembersPage() {
           body: JSON.stringify(body),
         });
         if (!res.ok) {
-          const data = await res.json();
-          setError(data.error || "Failed to update");
+          const data = await readJsonSafe(res);
+          setError(data?.error || "Failed to update");
           setSaving(false);
           return;
         }
@@ -170,8 +189,8 @@ export default function AdminMembersPage() {
           body: JSON.stringify(form),
         });
         if (!res.ok) {
-          const data = await res.json();
-          setError(data.error || "Failed to create");
+          const data = await readJsonSafe(res);
+          setError(data?.error || "Failed to create");
           setSaving(false);
           return;
         }
@@ -185,7 +204,13 @@ export default function AdminMembersPage() {
 
   async function handleDelete(user: UserInfo) {
     if (!confirm(`Delete ${user.name} (${user.email})? This cannot be undone.`)) return;
-    await fetch(`/api/admin/users?id=${user.id}`, { method: "DELETE" });
+    const res = await fetch(`/api/admin/users?id=${user.id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const data = await readJsonSafe(res);
+      setError(data?.error || "Failed to delete");
+      return;
+    }
+    setError("");
     toast("Member deleted");
     fetchUsers();
   }

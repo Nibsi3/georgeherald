@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import fs from "fs";
 import path from "path";
+import { S3Client, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 
 const ADMIN_COOKIE = "gh_admin_session";
 const WORKSPACE_COOKIE = "gh_workspace";
@@ -29,7 +30,54 @@ export interface SessionData {
 
 const USERS_FILE = path.join(process.cwd(), "src", "data", "users.json");
 
-export function readUsers(): UserRecord[] {
+const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID;
+const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID;
+const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY;
+const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME || "georgeherald";
+const R2_USERS_KEY = process.env.R2_USERS_KEY || "admin/users.json";
+
+const r2Enabled = Boolean(R2_ACCOUNT_ID && R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY);
+
+const r2 = r2Enabled
+  ? new S3Client({
+      region: "auto",
+      endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+      credentials: {
+        accessKeyId: R2_ACCESS_KEY_ID!,
+        secretAccessKey: R2_SECRET_ACCESS_KEY!,
+      },
+    })
+  : null;
+
+async function streamToString(stream: any): Promise<string> {
+  if (!stream) return "";
+  if (typeof stream === "string") return stream;
+  if (Buffer.isBuffer(stream)) return stream.toString("utf-8");
+
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) {
+    chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks).toString("utf-8");
+}
+
+export async function readUsers(): Promise<UserRecord[]> {
+  if (r2Enabled && r2) {
+    try {
+      const res = await r2.send(
+        new GetObjectCommand({
+          Bucket: R2_BUCKET_NAME,
+          Key: R2_USERS_KEY,
+        })
+      );
+      const raw = await streamToString(res.Body);
+      if (!raw) return [];
+      return JSON.parse(raw);
+    } catch {
+      return [];
+    }
+  }
+
   try {
     return JSON.parse(fs.readFileSync(USERS_FILE, "utf-8"));
   } catch {
@@ -37,7 +85,19 @@ export function readUsers(): UserRecord[] {
   }
 }
 
-export function writeUsers(users: UserRecord[]) {
+export async function writeUsers(users: UserRecord[]): Promise<void> {
+  if (r2Enabled && r2) {
+    await r2.send(
+      new PutObjectCommand({
+        Bucket: R2_BUCKET_NAME,
+        Key: R2_USERS_KEY,
+        Body: JSON.stringify(users, null, 2),
+        ContentType: "application/json",
+      })
+    );
+    return;
+  }
+
   fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), "utf-8");
 }
 
@@ -65,7 +125,7 @@ function decodeSession(token: string): SessionData | null {
 }
 
 export async function login(email: string, password: string) {
-  const users = readUsers();
+  const users = await readUsers();
   const user = users.find((u) => u.email === email && u.password === password);
   if (!user) return null;
 
@@ -142,7 +202,7 @@ export async function getSession(): Promise<SessionData | null> {
 
   // Refresh stale sessions that are missing workspace data
   if (!session.id || !session.workspaces || session.workspaces.length === 0) {
-    const users = readUsers();
+    const users = await readUsers();
     const user = users.find((u) => u.email === session.email);
     if (user) {
       const refreshed: SessionData = {
