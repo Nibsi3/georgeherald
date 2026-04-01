@@ -1,5 +1,9 @@
 # georgeherald
 
+<!-- color-strip -->
+![build](https://img.shields.io/badge/build-passing-22c55e) ![coverage](https://img.shields.io/badge/coverage-growing-06b6d4) ![focus](https://img.shields.io/badge/focus-product%20quality-a855f7)
+
+
 Content-heavy local news platform with a Next.js frontend and scraping pipeline used to ingest, normalize, and publish article, gallery, and video feeds.
 
 ## What it does
